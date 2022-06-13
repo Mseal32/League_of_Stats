@@ -1,5 +1,4 @@
 import dearpygui.dearpygui as dpg
-import modules.gui_helpers.img_reader as img_reader
 import modules.json_manager as json_manager
 
 team_1 = ""
@@ -16,7 +15,6 @@ dpg.create_context()
 
 def main(appdata):
     show_match_summary(appdata['file_path_name'])
-    check_input(appdata['file_path_name'])
 
 
 def show_match_summary(img):
@@ -50,50 +48,8 @@ def bind_match_summary():
 
 def cleanup_tags_match_summary():
     dpg.remove_alias("Uploaded Texture")
-    dpg.remove_alias("Match Summary")
+    dpg.delete_item("Match Summary")
     dpg.remove_alias("drawlist")
-
-
-def check_input(img):
-    global player_info
-    player_info = img_reader.read_image(img)
-    help_color = [55, 60, 255]
-    player_info = process_player_info(player_info, player_list)
-    with dpg.window(label="Modify Stats", tag="Modify Stats", pos=[700, 100], on_close=cleanup_tags_modify_stats):
-        with dpg.group(horizontal=True):
-            dpg.add_text("      NAME", color=help_color)
-            dpg.add_text("            K", color=help_color)
-            dpg.add_text("  D", color=help_color)
-            dpg.add_text("  A", color=help_color)
-            dpg.add_text("  CS", color=help_color)
-            dpg.add_text("  GOLD", color=help_color)
-            dpg.add_text("    CHAMPION", color=help_color)
-        with dpg.group(horizontal=True):
-            dpg.add_input_text(default_value="Team 1", tag="Team 1", width=300)
-        for blue_player in blue_team:
-            dpg.add_group(horizontal=True, tag=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][0], width=150, parent=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][1][0], width=20, parent=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][1][1], width=20, parent=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][1][2], width=20, parent=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][2], width=30, parent=blue_player)
-            dpg.add_input_text(default_value=player_info[blue_player][3], width=50, parent=blue_player)
-            dpg.add_input_text(parent=blue_player)
-
-        with dpg.group(horizontal=True):
-            dpg.add_text("------------------------------------------------------------")
-        with dpg.group(horizontal=True):
-            dpg.add_input_text(default_value="Team 2", tag="Team 2", width=300)
-        for red_player in red_team:
-            dpg.add_group(horizontal=True, tag=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][0], width=150, parent=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][1][0], width=20, parent=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][1][1], width=20, parent=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][1][2], width=20, parent=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][2], width=30, parent=red_player)
-            dpg.add_input_text(default_value=player_info[red_player][3], width=50, parent=red_player)
-            dpg.add_input_text(parent=red_player)
-        dpg.add_button(indent=250, label="Apply", callback=lambda: confirm_changes(img))
 
 
 def manual_entry_match_summary():
@@ -145,46 +101,11 @@ def process_player_info(pre_player_info, player_list):
 
 
 def cleanup_tags_modify_stats():
-    dpg.remove_alias("Modify Stats")
+    dpg.delete_item("Modify Stats")
     for player in player_list:
         dpg.remove_alias(player)
     dpg.remove_alias("Team 1")
     dpg.remove_alias("Team 2")
-
-
-def confirm_changes(img):
-    teams = [dpg.get_value("Team 1"), dpg.get_value("Team 2")]
-    img_reader.save_new_img(img, teams)
-
-    player_stats = []
-    test_list = []
-    pointer = 1
-
-    for player in player_list:
-        for item in dpg.get_item_children(player)[1]:
-            player_stats.append(dpg.get_value(item))
-        if player in blue_team:
-            player_stats.append(True)
-            player_stats.append(teams[0])
-        else:
-            player_stats.append(False)
-            player_stats.append(teams[1])
-
-    for stat in player_stats:
-        if pointer % 9 == 0:
-            test_list.append(stat)
-            json_manager.add_player_to_json(test_list)
-            test_list.clear()
-        else:
-            test_list.append(stat)
-        pointer += 1
-
-    json_manager.update_team_data(player_stats, teams)
-
-    dpg.delete_item("Modify Stats")
-    dpg.delete_item("Match Summary")
-    cleanup_tags_modify_stats()
-    cleanup_tags_match_summary()
 
 
 def manual_entry_confirm_choices():
@@ -213,8 +134,7 @@ def manual_entry_confirm_choices():
             test_list.append(stat)
         pointer += 1
 
-    dpg.delete_item("Modify Stats")
-    dpg.delete_item("Match Summary")
+    json_manager.update_team_data(player_stats, teams)
     cleanup_tags_modify_stats()
     cleanup_tags_match_summary()
 
@@ -247,7 +167,8 @@ def add_solo_player():
             won_game = dpg.add_checkbox(label="Won Game")
             dpg.add_text("                   ")
             dpg.add_button(label="Apply and Close",
-                           callback=lambda: add_solo_player_confirm_choices(name_checkbox, [name_input_text, name_combo], kills, deaths, assists, cs, gold, champion, won_game))
+                           callback=lambda: add_solo_player_confirm_choices(name_checkbox, [name_input_text, name_combo], kills, deaths, assists, cs, gold, champion,
+                                                                            won_game))
 
     dpg.set_item_user_data(name_checkbox, [name_input_text, name_combo])
 
@@ -279,4 +200,4 @@ def add_solo_player_confirm_choices(toggle, name, kills, deaths, assists, cs, go
     gold = dpg.get_value(gold).replace(",", "")
     champion = dpg.get_value(champion)
 
-    json_manager.add_solo_player(name, kills, deaths, assists, cs, gold,champion, won_game)
+    json_manager.add_solo_player(name, kills, deaths, assists, cs, gold, champion, won_game)

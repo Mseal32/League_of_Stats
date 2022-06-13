@@ -36,11 +36,16 @@ def add_player_to_json(stat_list):
         players = list(player_data_file_data)
 
     name = stat_list[0]
-    kills = int(stat_list[1])
-    deaths = int(stat_list[2])
-    assists = int(stat_list[3])
-    cs = int(stat_list[4])
-    gold = int(stat_list[5].replace(",", ""))
+    try:
+        kills = int(stat_list[1])
+        deaths = int(stat_list[2])
+        assists = int(stat_list[3])
+        cs = int(stat_list[4])
+        gold = int(stat_list[5].replace(",", ""))
+    except ValueError:
+        print("Error Reading Values of KDA, CS, and/or Gold")
+        print("(Are the values all integers?)")
+
     champion = stat_list[6]
     won_game = stat_list[7]
     team = stat_list[8]
