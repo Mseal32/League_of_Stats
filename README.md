@@ -1,5 +1,18 @@
 # League_of_Stats
 
-## NOTICE
-I encountered an issue with the image reading software I use, pytesseract. Until this issue is fixed (and a more permanent/consistent method is devised to read/take images), I have disabled the 'Upload' option on the menu bar. 
-Everything else should work normally though! 
+## Overview
+League of Stats is a software designed (and currently being developed/updated) for a friend that I have released to the public. As can inferred by its name, LOS is a stat tracker: allowing you to enter match data (made for a game whose name bears a strikingly similarity to League of Stats) which the software allows you to view later.
+
+### Features
+* Input an entire game: two teams of five players each
+* Input a single player on no team
+* Track the overall and average stats for each player (Like winrate, KDA ratio, gold, and more!)
+  * Including stats for each champion per player
+* See and track stats for teams
+
+### Upcoming Features
+* Customizable UI
+* Export all (or a teams or players) stats to a formatted pdf 
+* Compare players and teams by seeing their stats side by side
+  * (And mathematically prove who's the better player)
+* Better visualize stats by graphing them!  
