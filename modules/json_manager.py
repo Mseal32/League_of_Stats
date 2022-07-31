@@ -1,22 +1,11 @@
 import json
+import pstats
+
 import modules.data_location_preferences as dl
-import os
+from os.path import abspath
 
 data_folder_path = dl.path_to_data_folder()
 player_stats_file_path = data_folder_path + "/player_stats.json"
-
-try:
-    player_data_file_data = json.loads(open(data_folder_path + "/player_stats.json").read())
-except json.JSONDecodeError:
-    with open(player_stats_file_path, "w") as initfile:
-        initfile.write("{}")
-    player_data_file_data = json.loads(open(player_stats_file_path).read())
-
-try:
-    team_file_data = json.loads(open(data_folder_path + '/teams.json').read())
-except json.JSONDecodeError:
-    with open(data_folder_path + "/teams.json", "w") as initfile:
-        initfile.write("{}")
 
 
 def get_file_data(file_path):
@@ -29,22 +18,35 @@ def get_file_data(file_path):
     return file_data
 
 
+def get_team_data():
+    try:
+        with open(dl.path_to_data_folder() + "/teams.json", "r") as file:
+            file_data = json.loads(file.read())
+    except json.JSONDecodeError:
+        print("ERROR getting data from\n\t" + abspath(dl.path_to_data_folder() + "/teams.json") + "\n\n")
+        with open(dl.path_to_data_folder() + "/teams.json", "w") as file:
+            file.write("{}")
+    return file_data
+
+
 def add_player_to_json(stat_list):
-    global player_data_file_data
     with open(data_folder_path + "/player_stats.json", "r") as player_data_file:
         player_data_file_data = json.loads(player_data_file.read())
         players = list(player_data_file_data)
 
     name = stat_list[0]
-    try:
-        kills = int(stat_list[1])
-        deaths = int(stat_list[2])
-        assists = int(stat_list[3])
-        cs = int(stat_list[4])
-        gold = int(stat_list[5].replace(",", ""))
-    except ValueError:
-        print("Error Reading Values of KDA, CS, and/or Gold")
-        print("(Are the values all integers?)")
+
+    gold = stat_list[5].replace(",", "")
+
+    for stat in stat_list[1:6]:
+        if stat == "":
+            raise ValueError("Missing Value found for " + name)
+
+    kills = int(stat_list[1])
+    deaths = int(stat_list[2])
+    assists = int(stat_list[3])
+    cs = int(stat_list[4])
+    gold = int(gold)
 
     champion = stat_list[6]
     won_game = stat_list[7]
@@ -82,7 +84,7 @@ def add_player_to_json(stat_list):
                 "Games Won": current_player_data["Games Won"] + won_game_placeholder,
                 "Games Lost": current_player_data["Games Lost"] + loss_game_placeholder,
                 "Games Played": current_player_data["Games Played"] + 1,
-                "Winrate": ((current_player_data["Games Won"] + won_game_placeholder) / (current_player_data["Games Played"] + 1)) * 100,
+                "Winrate": ((current_player_data["Games Won"] + won_game_placeholder) / (current_player_data["Games Played"] + 1)),
                 "Kills": current_player_data["Kills"] + kills,
                 "Deaths": current_player_data["Deaths"] + deaths,
                 "Assists": current_player_data["Assists"] + assists,
@@ -152,7 +154,9 @@ def update_champion_data(player_name, champion, won, lost, kills, deaths, assist
                     "Total Assists": assists,
                     "Total CS": cs,
                     "Total Gold": gold,
-                    "KDA Ratio": (kills + assists) / deaths
+                    "KDA Ratio": (kills + assists) / deaths,
+                    "Average CS": cs,
+                    "Average Gold": gold
                 }
             }
         player_champion_data.update(data)
@@ -168,7 +172,9 @@ def update_champion_data(player_name, champion, won, lost, kills, deaths, assist
                     "Total Assists": assists,
                     "Total CS": cs,
                     "Total Gold": gold,
-                    "KDA Ratio": (kills + assists) / deaths
+                    "KDA Ratio": (kills + assists) / deaths,
+                    "Average CS": cs,
+                    "Average Gold": gold
                 }
             }
         }
@@ -176,6 +182,59 @@ def update_champion_data(player_name, champion, won, lost, kills, deaths, assist
 
     with open(data_folder_path + "/player_champion_data.json", "w") as file:
         json.dump(champion_data, file, indent=2)
+
+
+def add_player_to_json_existing_teams(team_1, team_2):
+    team_1_name = team_1.pop(0).split(":")[1].strip()
+    team_2_name = team_2.pop(0).split(":")[1].strip()
+
+    team_1_list = []
+    player_1 = team_1[0:7]
+    player_2 = team_1[7:14]
+    player_3 = team_1[14:21]
+    player_4 = team_1[21:28]
+    player_5 = team_1[28: 35]
+    team_1_list.append(player_1)
+    team_1_list.append(player_2)
+    team_1_list.append(player_3)
+    team_1_list.append(player_4)
+    team_1_list.append(player_5)
+
+    team_2_list = []
+    player_6 = team_2[0:7]
+    player_7 = team_2[7:14]
+    player_8 = team_2[14:21]
+    player_9 = team_2[21:28]
+    player_10 = team_2[28: 35]
+    team_2_list.append(player_6)
+    team_2_list.append(player_7)
+    team_2_list.append(player_8)
+    team_2_list.append(player_9)
+    team_2_list.append(player_10)
+
+    for player in team_1_list:
+        player.append(True)
+        player.append(team_1_name)
+        add_player_to_json(player)
+
+    for player in team_2_list:
+        player.append(False)
+        player.append(team_2_name)
+        add_player_to_json(player)
+
+    player_stats = []
+    player_stats.extend(player_1)
+    player_stats.extend(player_2)
+    player_stats.extend(player_3)
+    player_stats.extend(player_4)
+    player_stats.extend(player_5)
+    player_stats.extend(player_6)
+    player_stats.extend(player_7)
+    player_stats.extend(player_8)
+    player_stats.extend(player_9)
+    player_stats.extend(player_10)
+
+    update_team_data(player_stats, [team_1_name, team_2_name])
 
 
 def update_team_data(player_stats, teams):
@@ -293,7 +352,91 @@ def add_solo_player(name, kills, deaths, assists, cs, gold, champion, won_game):
     if name in list(player_data) and player_data[name]["Team"] != "Solo":
         print("Player: '" + name + "' detected on team")
         return
-    with open(data_folder_path + "/player_stats.json", "w") as  player_stats_file:
+    with open(data_folder_path + "/player_stats.json", "w") as player_stats_file:
         player_data.update(data)
         json.dump(player_data, player_stats_file, indent=2)
     update_champion_data(name, champion, won_game, lost_game, kills, deaths, assists, cs, gold)
+
+
+def player_champion_stats_to_tuple(player_name: str, player_accepted_stats: list, champion_accepted_stats: list):
+    try:
+        file_data = json.loads(open(data_folder_path + "/player_stats.json").read())
+    except json.JSONDecodeError:
+        raise ValueError("Error reading data from '" + data_folder_path + "/player_stats.json" + "'\n"
+                                                                                                 "If file is empty, add {}")
+    try:
+        champion_data = json.loads(open(data_folder_path + "/player_champion_data.json").read())
+    except json.JSONDecodeError:
+        raise ValueError("Error reading data from '" + data_folder_path + "/player_champion_data.json" + "'\n"
+                                                                                                         "If file is empty, add {}")
+    file_data = file_data[player_name]
+    champion_data = champion_data[player_name]
+    master_dict = {}
+    stats = []
+    stat_values = []
+    for key, value in file_data.items():
+        if key not in player_accepted_stats:
+            continue
+        stats.append(key)
+        stat_values.append(value)
+        master_dict[player_name] = (tuple(stats), tuple(stat_values))
+    stats.clear()
+    stat_values.clear()
+
+    for champion in list(champion_data):
+        for key, value in champion_data[champion].items():
+            if key not in champion_accepted_stats:
+                continue
+            stats.append(key)
+            stat_values.append(value)
+        master_dict[champion] = (tuple(stats), tuple(stat_values))
+    stats.clear()
+    stat_values.clear()
+    return master_dict
+
+
+def team_player_stats_to_tuple(accepted_stats: list, team_name: str = "Solo"):
+    try:
+        file_data = json.loads(open(data_folder_path + "/player_stats.json").read())
+    except json.JSONDecodeError:
+        raise ValueError("Error reading data from '" + data_folder_path + "/player_stats.json" + "'\n"
+                                                                                                 "If file is empty, add {}")
+    master_dict = {}
+    stats = []
+    stat_values = []
+    for player in list(file_data):
+        if team_name != file_data[player]["Team"]:
+            continue
+        stats.append("Player Name")
+        stat_values.append(player)
+        for key, value in file_data[player].items():
+            if key not in accepted_stats:
+                continue
+            stats.append(key)
+            stat_values.append(value)
+        master_dict[player] = (tuple(stats), tuple(stat_values))
+        stats.clear()
+        stat_values.clear()
+
+    return master_dict
+
+
+def team_stats_to_tuple(accepted_stats, team_name):
+    try:
+        file_data = json.loads(open(data_folder_path + "/teams.json").read())
+    except json.JSONDecodeError:
+        raise ValueError("Error reading data from '" + data_folder_path + "/teams.json" + "'\n"
+                                                                                          "If file is empty, add {}")
+    master_dict = {}
+    stats = []
+    stat_values = []
+    stats.append("Winrate")
+    stat_values.append(round((file_data[team_name]["Games Won"] / file_data[team_name]["Games Played"]) * 100, 2))
+    for key, value in file_data[team_name].items():
+        if key not in accepted_stats:
+            continue
+        stats.append(key)
+        stat_values.append(value)
+    master_dict[team_name] = (tuple(stats), tuple(stat_values))
+
+    return master_dict

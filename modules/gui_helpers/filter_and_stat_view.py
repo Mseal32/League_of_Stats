@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 import modules.json_manager as jman
 import modules.data_location_preferences as dl
+import modules.export_data as exp_data
 
 path_to_data_folder = dl.path_to_data_folder()
 
@@ -24,6 +25,7 @@ def click_event_show_player_stats(sender, appdata):
                             dpg.add_selectable(label=player_stats[stat])
         dpg.add_text("------------------------------------------------")
         dpg.add_button(label="View Champion Stats", callback=lambda: show_player_champion_stats(player_name))
+        dpg.add_button(label="Export Player & Champion Stats", callback=lambda: exp_data.export_player_stats(player_name))
 
 
 def click_event_show_player_champion_stats(sender, appdata):
@@ -123,6 +125,7 @@ def generate_player_filter():
     player_stat_data = jman.get_file_data(path_to_data_folder + "/player_stats.json")
     window = dpg.add_window(label="Registered Players", on_close=dpg.delete_item)
     name_filter = dpg.add_input_text(label="Filter By Player Name or Team", parent=window, width=150, callback=lambda: filter_config(filter_set, dpg.get_value(name_filter)))
+    dpg.add_separator(parent=window)
     with dpg.filter_set(parent=window) as filter_set:
         for name in player_stat_data:
             name_list.append(name)
