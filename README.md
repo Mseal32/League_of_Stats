@@ -9,10 +9,10 @@ League of Stats is a software designed (and currently being developed/updated) f
 * Track the overall and average stats for each player (Like winrate, KDA ratio, gold, and more!)
   * Including stats for each champion per player
 * See and track stats for teams
+* Export all data to a formatted PDF
 
 ### Upcoming Features
-* Customizable UI
-* Export all (or a teams or players) stats to a formatted pdf 
+* Customizable UI 
 * Compare players and teams by seeing their stats side by side
   * (And mathematically prove who's the better player)
 * Better visualize stats by graphing them!  
